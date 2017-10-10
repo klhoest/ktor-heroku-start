@@ -37,6 +37,11 @@ fun Application.module() {
     }
 
     routing {
+
+        get("/") {
+            call.respond(returnJSON)
+        }
+
         post("/") {
             val inputBody: String = call.request.receiveContent().readText()
             var inputPojo: Pojo? = null
