@@ -85,7 +85,7 @@
                     <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
-                            <mainClass>org.jetbrains.ktor.heroku.MainKt</mainClass>
+                            <mainClass>blog.BlogAppKt</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
