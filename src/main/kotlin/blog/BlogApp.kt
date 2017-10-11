@@ -54,9 +54,13 @@ fun Application.module() {
                 val solarSystem = inputPojo.planets.filterNotNull()
                 val laRebelion = solarSystem.filter { planet: Planet -> planet.owner!! == PlanetIA.ME; }
                 val lEmpire = solarSystem.filter { planet: Planet -> planet.owner!! != PlanetIA.ME; }
+
+                val allFleet = inputPojo.fleets!!.filterNotNull()
+                val rebelionFleet = allFleet.filter { fleet -> fleet.owner!! == PlanetIA.ME; }
+                val empireFleet = allFleet.filter { fleet -> fleet.owner!! != PlanetIA.ME; }
                 try {
                     for (colony in laRebelion) {
-                        var planetIA = PlanetIA(colony, laRebelion, lEmpire/*, inputPojo.fleets*/)
+                        var planetIA = PlanetIA(colony, laRebelion, lEmpire, rebelionFleet, empireFleet)
                     }
                 } catch (e: Exception) {
                     call.respond(returnJSON)
@@ -71,7 +75,8 @@ fun Application.module() {
 }
 
 fun main(args: Array<String>) {
-    embeddedServer(Netty, 8080, watchPaths = listOf("BlogAppKt"), module = Application::module).start()
+    val port = Integer.valueOf(System.getenv("PORT"))
+    embeddedServer(Netty, port= port, watchPaths = listOf("BlogAppKt"), module = Application::module).start()
 }
 
 fun generatePojo(inputBody: String): Pojo {
@@ -79,12 +84,28 @@ fun generatePojo(inputBody: String): Pojo {
     return gson.fromJson<Pojo>(inputBody, Pojo::class.java)
 }
 
-class PlanetIA(val colony: Planet, val laRebelion: List<Planet>, val lEmpire: List<Planet>) {
+class PlanetIA(val colony: Planet, val laRebelion: List<Planet>, val lEmpire: List<Planet>, val rebelionFleet:List<Fleet>, val empireFleet:List<Fleet>) {
     //var inpect: Planet;
     val sendableUnits: Int
-        get() = max(colony.units!! - MIN_POP, 0);
-    private val remainingPlace: Int
+        get() = max(colony.units!! - minPop, 0);
+    val remainingPlace: Int
         get() = colony.mu!! - colony.units!!
+    val threaten: Boolean
+        get() = (colony.units!! + rebelionFleetIncoming -rebelionFleetIncoming) <= 0
+    val minPop: Int
+        get() = enemyCivilainNearby.toInt() + empireFleetIncoming - rebelionFleetIncoming + 1 //warning: can be negative
+    val empireFleetIncoming:Int
+        get() = getIncomingFleet(fleetNationality=empireFleet)
+    val rebelionFleetIncoming:Int
+        get() = getIncomingFleet(fleetNationality = rebelionFleet)
+    val enemyCivilainNearby:Double
+        get() {
+            var result = 0.0
+            for(inspectPlanet in lEmpire) {
+                result += inspectPlanet.units!!/distance(colony, inspectPlanet)
+            }
+            return result
+        }
 
     init {
         for(deathStar in lEmpire) {
@@ -93,12 +114,19 @@ class PlanetIA(val colony: Planet, val laRebelion: List<Planet>, val lEmpire: Li
 
     }
 
+    private fun getIncomingFleet(fleetNationality:List<Fleet>): Int {
+        var result = 0
+        val incomingFleet = fleetNationality.filter({ fleet -> fleet.to == colony.id })
+        for(inpectFleet in incomingFleet) {
+            result += inpectFleet.units ?: 0
+        }
+        return result
+    }
+
     companion object {
         //__Player
         const val Guilde_du_Commerce: Int = 0
         const val ME: Int = 1
-
-        const val MIN_POP = 10
 
         @JvmStatic
         fun sortPlanetByDistance(from: Planet, planets: List<Planet?>): List<Planet?>? {

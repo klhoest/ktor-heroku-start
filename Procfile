@@ -1,1 +1,1 @@
-web:    java -jar target/helloworld.jar
+web:    java -Dserver.port=$PORT -jar target/helloworld.jar
