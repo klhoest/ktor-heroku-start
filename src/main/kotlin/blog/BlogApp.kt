@@ -64,11 +64,15 @@ fun Application.module() {
 
                 val solarSystem = TreeSet<WorkablePlanet>()
                 for (inspectPlanet in solarSystemPojo) {
-                    System.out.println("adding id:" + inspectPlanet.id + " of owner: "+ inspectPlanet.owner);
-                    if (inspectPlanet.owner == WorkablePlanet.ME) {
-                        solarSystem.add(PlanetRebel(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet))
-                    } else {
-                        solarSystem.add(WorkablePlanet(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet))
+                    try {
+                        System.out.println("adding id:" + inspectPlanet.id + " of owner: "+ inspectPlanet.owner + " with growing of : " + inspectPlanet.gr);
+                        if (inspectPlanet.owner == WorkablePlanet.ME) {
+                            solarSystem.add(PlanetRebel(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet))
+                        } else {
+                            solarSystem.add(WorkablePlanet(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet))
+                        }
+                    } catch (e:ClassCastException) {
+                        System.out.println("could not add id:" + inspectPlanet.id + " of owner: "+ inspectPlanet.owner + " with ");
                     }
                 }
                 val verdunAI = VerdunAI(solarSystem)
