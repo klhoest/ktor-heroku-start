@@ -68,13 +68,8 @@ fun Application.module() {
                         solarSystem.add(WorkablePlanet(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet))
                     }
                 }
-                val it = solarSystem.iterator();
-                val target = findTarget(it);
-                for (inspectPlanet in solarSystem) {
-                    if(inspectPlanet is PlanetRebel) {
-                        inspectPlanet.pourFrodon(target)
-                    }
-                }
+                val verdunAI = VerdunAI(solarSystem)
+                verdunAI.mobilise()
 
                 call.respond(returnJSON)
             }
@@ -96,22 +91,72 @@ fun generatePojo(inputBody: String): Pojo {
     return gson.fromJson<Pojo>(inputBody, Pojo::class.java)
 }
 
-fun findTarget(it: Iterator<WorkablePlanet>): Int {
-    val target: Int
-    while (it.hasNext()) {
-        if (it.next() is PlanetRebel) {
-            if((it.next() as PlanetRebel).threaten)
+
+class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
+
+    val it = solarSystem.iterator();
+    val target:WorkablePlanet
+        get() = findTarget()
+    val requiredArmy:Int
+        get() = target.enemyPop + target.empireFleetIncoming + (target.enemyCivilainNearby).toInt() - target.rebelionFleetIncoming
+    val overPopulatedPlanetList: ArrayList<PlanetRebel>
+        get() {
+            val result = ArrayList<PlanetRebel>()
+            for(inspectPlanet in solarSystem) {
+                if (inspectPlanet is PlanetRebel) {
+                    if(inspectPlanet.isOverpopulated) {
+                        result.add(inspectPlanet)
+                    }
+                }
+            }
+            return result
+        }
+
+    fun findTarget(): WorkablePlanet {
+        while (it.hasNext()) {
+            if (it.next() is PlanetRebel) {
+                if((it.next() as PlanetRebel).threaten)
+                    break
+            } else {
                 break
-        } else {
-            break
+            }
+        }
+        return it.next()
+    }
+
+    fun mobilise() {
+        for(inspectedPlanet in overPopulatedPlanetList) {
+            if(requiredArmy<0)
+                return
+            inspectedPlanet.pourFrodon(target.colony.id)
+        }
+        if(requiredArmy<0)
+            return
+        val rit = solarSystem.descendingIterator()
+        while(requiredArmy > 0 && rit.hasNext()) {
+            if(rit.next() is PlanetRebel) {
+                (rit.next() as PlanetRebel).pourFrodon(target.colony.id)
+            }
         }
     }
-    target = it.next().colony.id
-    return target
 }
+
+
 
 open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val lEmpire: List<Planet>, val rebelionFleet: List<Fleet>, val empireFleet: List<Fleet>) : Comparable<PlanetRebel> {
 
+    val interest: Int
+        get() = colony.gr!! - empireFleetIncoming/10 - enemyPop/10;
+    val enemyPop: Int
+        get() {
+            if (colony.owner == ME) {
+                return 0;
+            } else {
+                return colony.units!!;
+            }
+        }
+    val remainingPlace: Int
+        get() = colony.mu!! - colony.units!!
     val empireFleetIncoming: Int
         get() = getIncomingFleet(fleetNationality = empireFleet)
     val rebelionFleetIncoming: Int
@@ -134,9 +179,8 @@ open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val 
         return result
     }
 
-    override fun compareTo(other: PlanetRebel): Int {
-        return (colony.gr!! - other.colony.gr!!) * 100 + colony.id % 100 // we add the add to make sure that each planet have a different comparable value
-    }
+    // we add the add to make sure that each planet have a different comparable interest
+    override fun compareTo(other: PlanetRebel) = interest * 100 + colony.id % 100
 
     companion object {
         //__Player
@@ -160,28 +204,21 @@ class PlanetRebel(colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet
     //var inpect: Planet;
     val sendableUnits: Int
         get() = max(colony.units!! - minPop, 0);
-    val remainingPlace: Int
-        get() = colony.mu!! - colony.units!!
     val threaten: Boolean
         get() = (colony.units!! + rebelionFleetIncoming - rebelionFleetIncoming) <= 0
+    val maxPop = (colony.mu!!-colony.gr!!)*2
+    val isOverpopulated: Boolean
+        get() = colony.units!! > maxPop
     val minPop: Int
-        get() = enemyCivilainNearby.toInt() + empireFleetIncoming - rebelionFleetIncoming + 1 //warning: can be negative
+        get() {
 
-
-    init {
-        for (deathStar in lEmpire) {
-
+            val temp = min(maxPop ,enemyCivilainNearby.toInt() + empireFleetIncoming - rebelionFleetIncoming + 1)
+            return max (temp, 1)
         }
 
-    }
-
-    override fun compareTo(other: PlanetRebel): Int {
-        return colony.gr!! - other.colony.gr!!
-    }
-
-    fun pourFrodon(target: Int) {
+    fun pourFrodon(targetId: Int) {
         if(sendableUnits >= 3) {
-            returnJSON.fleets.add(FleetOrder(sendableUnits, source = colony.id, target = target))
+            returnJSON.fleets.add(FleetOrder(sendableUnits, source = colony.id, target = targetId))
         }
     }
 }

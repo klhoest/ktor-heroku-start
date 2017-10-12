@@ -17,7 +17,7 @@ data class Planet(
         @SerializedName("mu") val mu: Int?, //100
         @SerializedName("gr") val gr: Int?, //2
         @SerializedName("classe") val classe: String?, //M
-        @SerializedName("tr") val tr: Int? //-1
+        @SerializedName("tr") val tr: Int? //-1 null
 )
 
 data class Config(
