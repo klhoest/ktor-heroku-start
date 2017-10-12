@@ -46,6 +46,8 @@ fun Application.module() {
             val inputBody: String = call.request.receiveContent().readText()
             var inputPojo: Pojo? = null
             try {
+                System.out.println("received json :");
+                System.out.println(inputBody)
                 inputPojo = generatePojo(inputBody)
             } catch (e: Exception) {
                 call.respond(returnJSON)
@@ -62,6 +64,7 @@ fun Application.module() {
 
                 val solarSystem = TreeSet<WorkablePlanet>()
                 for (inspectPlanet in solarSystemPojo) {
+                    System.out.println("adding id:" + inspectPlanet.id + " of owner: "+ inspectPlanet.owner);
                     if (inspectPlanet.owner == WorkablePlanet.ME) {
                         solarSystem.add(PlanetRebel(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet))
                     } else {
@@ -128,9 +131,12 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
         return null*/
         for(inspectPlanet in solarSystem) {
             if (inspectPlanet is PlanetRebel) {
-                if (inspectPlanet.threaten)
+                if (inspectPlanet.threaten) {
+                    System.out.println("target : " + inspectPlanet.colony.id + " , interest = " + inspectPlanet.interest)
                     return inspectPlanet
+                }
             } else {
+                System.out.println("target : " + inspectPlanet.colony.id + " , interest = " + inspectPlanet.interest)
                 return inspectPlanet
             }
         }
