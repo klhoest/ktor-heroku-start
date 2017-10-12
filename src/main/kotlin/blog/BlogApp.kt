@@ -124,19 +124,26 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
         return it.next()
     }
 
+    fun itsATrap() {
+        returnJSON.fleets.clear()
+    }
+
     fun mobilise() {
+        var mobiliseOverpopulation = false
         for(inspectedPlanet in overPopulatedPlanetList) {
             if(requiredArmy<0)
                 return
             inspectedPlanet.pourFrodon(target.colony.id)
+            mobiliseOverpopulation = true;
         }
-        if(requiredArmy<0)
-            return
         val rit = solarSystem.descendingIterator()
         while(requiredArmy > 0 && rit.hasNext()) {
             if(rit.next() is PlanetRebel) {
                 (rit.next() as PlanetRebel).pourFrodon(target.colony.id)
             }
+        }
+        if(requiredArmy>0 && !mobiliseOverpopulation) {
+            itsATrap();
         }
     }
 }
