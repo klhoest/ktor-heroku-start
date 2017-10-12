@@ -70,8 +70,6 @@ fun Application.module() {
                 }
                 val verdunAI = VerdunAI(solarSystem)
                 verdunAI.mobilise()
-
-                call.respond(returnJSON)
             }
             //var sortedPlanet:List<Planet?>? = IA.sortPlanetByDistance(returnPojo.solarSystem[0]!! ,returnPojo.solarSystem)
             call.respond(returnJSON)
@@ -82,8 +80,12 @@ fun Application.module() {
 }
 
 fun main(args: Array<String>) {
-    val port = Integer.valueOf(System.getenv("PORT"))
-    embeddedServer(Netty, port = port, watchPaths = listOf("BlogAppKt"), module = Application::module).start()
+    try {
+        val port = Integer.valueOf(System.getenv("PORT"))
+        embeddedServer(Netty, port = port, watchPaths = listOf("BlogAppKt"), module = Application::module).start()
+    } catch (e:NumberFormatException) {
+        embeddedServer(Netty, port = 8080, watchPaths = listOf("BlogAppKt"), module = Application::module).start()
+    }
 }
 
 fun generatePojo(inputBody: String): Pojo {
@@ -96,7 +98,7 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
 
     val it = solarSystem.iterator();
     val target:WorkablePlanet
-        get() = findTarget()
+        get() = findTarget()!! // todo
     val requiredArmy:Int
         get() = target.enemyPop + target.empireFleetIncoming + (target.enemyCivilainNearby).toInt() - target.rebelionFleetIncoming
     val overPopulatedPlanetList: ArrayList<PlanetRebel>
@@ -112,16 +114,27 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
             return result
         }
 
-    fun findTarget(): WorkablePlanet {
+    fun findTarget(): WorkablePlanet? {
+        /*var inspectPlanet:WorkablePlanet?
         while (it.hasNext()) {
-            if (it.next() is PlanetRebel) {
-                if((it.next() as PlanetRebel).threaten)
-                    break
-            } else {
-                break
+            inspectPlanet = it.next()
+            if (inspectPlanet is PlanetRebel) {
+                if(inspectPlanet.threaten)
+                    return inspectPlanet
+            } else { //if planet does not belong to me
+                return inspectPlanet
             }
         }
-        return it.next()
+        return null*/
+        for(inspectPlanet in solarSystem) {
+            if (inspectPlanet is PlanetRebel) {
+                if (inspectPlanet.threaten)
+                    return inspectPlanet
+            } else {
+                return inspectPlanet
+            }
+        }
+        return null
     }
 
     fun itsATrap() {
