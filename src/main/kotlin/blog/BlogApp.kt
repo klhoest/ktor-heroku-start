@@ -103,7 +103,6 @@ fun generatePojo(inputBody: String): Pojo {
 
 class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
 
-    val it = solarSystem.iterator();
     val target:WorkablePlanet
         get() = findTarget()!! // todo
     val requiredArmy:Int
@@ -122,18 +121,22 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
         }
 
     fun findTarget(): WorkablePlanet? {
-        /*var inspectPlanet:WorkablePlanet?
+        var inspectPlanet:WorkablePlanet?
+        val it = solarSystem.descendingIterator()
         while (it.hasNext()) {
             inspectPlanet = it.next()
             if (inspectPlanet is PlanetRebel) {
-                if(inspectPlanet.threaten)
+                if(inspectPlanet.threaten) {
+                    System.out.println("target : " + inspectPlanet.colony.id + " , interest = " + inspectPlanet.interest)
                     return inspectPlanet
+                }
             } else { //if planet does not belong to me
+                System.out.println("target : " + inspectPlanet.colony.id + " , interest = " + inspectPlanet.interest)
                 return inspectPlanet
             }
         }
-        return null*/
-        for(inspectPlanet in solarSystem) {
+        return null
+        /*for(inspectPlanet in solarSystem) {
             if (inspectPlanet is PlanetRebel) {
                 if (inspectPlanet.threaten) {
                     System.out.println("target : " + inspectPlanet.colony.id + " , interest = " + inspectPlanet.interest)
@@ -144,7 +147,7 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
                 return inspectPlanet
             }
         }
-        return null
+        return null*/
     }
 
     fun itsATrap() {
@@ -159,10 +162,11 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
             inspectedPlanet.pourFrodon(target.colony.id)
             mobiliseOverpopulation = true;
         }
-        val rit = solarSystem.descendingIterator()
-        while(requiredArmy > 0 && rit.hasNext()) {
-            if(rit.next() is PlanetRebel) {
-                (rit.next() as PlanetRebel).pourFrodon(target.colony.id)
+        val it = solarSystem.iterator()
+        while(requiredArmy > 0 && it.hasNext()) {
+            var inspectPlanet = it.next()
+            if(inspectPlanet is PlanetRebel) {
+                inspectPlanet.pourFrodon(target.colony.id)
             }
         }
         if(requiredArmy>0 && !mobiliseOverpopulation) {
@@ -193,11 +197,12 @@ open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val 
         get() = getIncomingFleet(fleetNationality = rebelionFleet)
     val enemyCivilainNearby: Double
         get() {
-            var result = 0.0
+            return 0.0 //todo
+            /*var result = 0.0
             for (inspectPlanet in lEmpire) {
                 result += inspectPlanet.units!! / distance(colony, inspectPlanet)
             }
-            return result
+            return result*/
         }
 
     protected fun getIncomingFleet(fleetNationality: List<Fleet>): Int {
