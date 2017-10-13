@@ -1,9 +1,10 @@
 package blog
 
+import java.lang.Integer.min
+
 open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val lEmpire: List<Planet>, val rebelionFleet: List<Fleet>, val empireFleet: List<Fleet>) : Comparable<WorkablePlanet> {
 
-    val interest: Int
-        get() = colony.gr!! - empireFleetIncoming/10 - enemyPop/10;
+    val interest: Int = colony.gr!!/* - empireFleetIncoming/10 - enemyPop/10*/; //todo
     val enemyPop: Int
         get() {
             if (colony.owner == ME) {
@@ -18,15 +19,17 @@ open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val 
         get() = getIncomingFleet(fleetNationality = empireFleet)
     val rebelionFleetIncoming: Int
         get() = getIncomingFleet(fleetNationality = rebelionFleet)
-    val enemyCivilainNearby: Double
-        get() {
-            var result = 0.0
-            for (inspectPlanet in lEmpire) {
-                if(inspectPlanet.owner!!> ME && inspectPlanet != this.colony)
-                    result += inspectPlanet.units!! / distance(colony, inspectPlanet)
-            }
-            return result
+    val enemyCivilainNearby: Double = getNearbyCivilian(lEmpire)
+    val rebelCivilianNearby: Double = getNearbyCivilian(laRebelion)
+
+    protected fun getNearbyCivilian(fleetNationality: List<Planet>): Double {
+        var result = 0.0
+        for (inspectPlanet in fleetNationality) {
+            if(inspectPlanet != this.colony)
+                result += inspectPlanet.units!! / distance(colony, inspectPlanet)
         }
+        return result
+    }
 
     protected fun getIncomingFleet(fleetNationality: List<Fleet>): Int {
         var result = 0
@@ -80,10 +83,11 @@ class PlanetRebel(colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet
             return Integer.max(temp, 1)
         }
 
-    fun pourFrodon(targetId: Int) {
+    fun pourFrodon(targetId: Int, requiredFleet: Int) {
         if(sendableUnits/4 >= 3) {
             System.out.println("pourFrodon on target: " + targetId + "from "+ this.colony.id +"with fleet = " + (sendableUnits/4) + "/" + this.colony.units)
-            returnJSON.fleets.add(FleetOrder(sendableUnits/4, source = colony.id, target = targetId))
+            val sentFleet = min(sendableUnits/4, requiredFleet)
+            returnJSON.fleets.add(FleetOrder(sentFleet, source = colony.id, target = targetId))
         }
     }
 }
