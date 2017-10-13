@@ -173,7 +173,7 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
 
 
 
-open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val lEmpire: List<Planet>, val rebelionFleet: List<Fleet>, val empireFleet: List<Fleet>) : Comparable<PlanetRebel> {
+open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val lEmpire: List<Planet>, val rebelionFleet: List<Fleet>, val empireFleet: List<Fleet>) : Comparable<WorkablePlanet> {
 
     val interest: Int
         get() = colony.gr!! - empireFleetIncoming/10 - enemyPop/10;
@@ -210,7 +210,7 @@ open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val 
     }
 
     // we add the add to make sure that each planet have a different comparable interest
-    override fun compareTo(other: PlanetRebel) = interest * 100 + colony.id % 100
+    override fun compareTo(other: WorkablePlanet) = interest * 100 + colony.id % 100
 
     companion object {
         //__Player
