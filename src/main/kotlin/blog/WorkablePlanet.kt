@@ -56,7 +56,7 @@ open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val 
         fun distance(planet1: Planet, planet2: Planet): Double {
             val result = Math.hypot(planet1.x - planet2.x, planet1.y - planet2.y)
             if( result > 100) {
-                System.out.println("distance between planet " + planet1.id + " and planet " + planet2.id)
+                System.out.println("distance between planet " + planet1.id + " and planet " + planet2.id +" = "+ result)
                 return 100.0;
             }
             return result
@@ -76,14 +76,14 @@ class PlanetRebel(colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet
         get() = colony.units!! > maxPop
     val minPop: Int
         get() {
-
             val temp = Integer.min(maxPop, enemyCivilainNearby.toInt() + empireFleetIncoming - rebelionFleetIncoming + 1)
             return Integer.max(temp, 1)
         }
 
     fun pourFrodon(targetId: Int) {
-        if(sendableUnits >= 3) {
-            returnJSON.fleets.add(FleetOrder(sendableUnits, source = colony.id, target = targetId))
+        if(sendableUnits/4 >= 3) {
+            System.out.println("pourFrodon on target: " + targetId + "from "+ this.colony.id +"with fleet = " + sendableUnits/4)
+            returnJSON.fleets.add(FleetOrder(sendableUnits/4, source = colony.id, target = targetId))
         }
     }
 }
