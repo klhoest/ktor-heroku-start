@@ -79,13 +79,13 @@ class PlanetRebel(colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet
         get() = colony.units!! > maxPop
     val minPop: Int
         get() {
-            val temp = Integer.min(maxPop, enemyCivilainNearby.toInt() + empireFleetIncoming - rebelionFleetIncoming + 1)
+            val temp = Integer.min(maxPop, /*enemyCivilainNearby.toInt()*/ + empireFleetIncoming - rebelionFleetIncoming + 1)
             return Integer.max(temp, 1)
         }
 
     fun pourFrodon(targetId: Int, requiredFleet: Int) {
         if(sendableUnits/4 >= 3) {
-            System.out.println("pourFrodon on target: " + targetId + "from "+ this.colony.id +"with fleet = " + (sendableUnits/4) + "/" + this.colony.units)
+            System.out.println("pourFrodon. send "+ (sendableUnits) + "/" + this.colony.units + " on target: " + targetId + "from "+ this.colony.id +" remains " + (requiredFleet-sendableUnits/4) )
             val sentFleet = min(sendableUnits/4, requiredFleet)
             returnJSON.fleets.add(FleetOrder(sentFleet, source = colony.id, target = targetId))
         }

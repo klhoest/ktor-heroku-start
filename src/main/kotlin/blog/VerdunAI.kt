@@ -7,7 +7,7 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
     val target:WorkablePlanet = findTarget()!! // todo
     val requiredArmy:Int
         get() = target.enemyPop + target.empireFleetIncoming + (target.enemyCivilainNearby-target.rebelCivilianNearby).toInt() - target.rebelionFleetIncoming
-    val overPopulatedPlanetList: ArrayList<PlanetRebel>
+    /*val overPopulatedPlanetList: ArrayList<PlanetRebel>
         get() {
             val result = ArrayList<PlanetRebel>()
             for(inspectPlanet in solarSystem) {
@@ -18,7 +18,7 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
                 }
             }
             return result
-        }
+        }*/
 
     fun findTarget(): WorkablePlanet? {
         var inspectPlanet:WorkablePlanet
@@ -43,13 +43,13 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
     }
 
     fun mobilise() {
-        var mobiliseOverpopulation = false
+        /*var mobiliseOverpopulation = false
         for(inspectedPlanet in overPopulatedPlanetList) {
             if(requiredArmy<0)
                 return
             inspectedPlanet.pourFrodon(target.colony.id, requiredArmy)
             mobiliseOverpopulation = true;
-        }
+        }*/
         val it = solarSystem.iterator()
         while(requiredArmy > 0 && it.hasNext()) {
             val inspectPlanet = it.next()
