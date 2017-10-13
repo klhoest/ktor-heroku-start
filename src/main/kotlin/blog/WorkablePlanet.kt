@@ -84,9 +84,9 @@ class PlanetRebel(colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet
         }
 
     fun pourFrodon(targetId: Int, requiredFleet: Int) {
-        if(sendableUnits/4 >= 3) {
+        val sentFleet = min(sendableUnits/4, requiredFleet)
+        if(sentFleet >= 3) {
             System.out.println("pourFrodon. send "+ (sendableUnits) + "/" + this.colony.units + " on target: " + targetId + "from "+ this.colony.id +" remains " + (requiredFleet-sendableUnits/4) )
-            val sentFleet = min(sendableUnits/4, requiredFleet)
             returnJSON.fleets.add(FleetOrder(sentFleet, source = colony.id, target = targetId))
         }
     }

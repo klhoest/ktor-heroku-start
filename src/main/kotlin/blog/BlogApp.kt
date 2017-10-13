@@ -41,6 +41,7 @@ fun Application.module() {
         }
 
         post("/") {
+            returnJSON.fleets.clear()
             val inputBody: String = call.request.receiveContent().readText()
             var inputPojo: Pojo? = null
             try {
