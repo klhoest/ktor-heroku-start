@@ -13,6 +13,7 @@ open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val 
                 return colony.units!!;
             }
         }
+    val safe: Boolean = isSafe()
     val remainingPlace: Int
         get() = colony.mu!! - colony.units!!
     val empireFleetIncoming: Int
@@ -38,6 +39,10 @@ open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val 
             result += inpectFleet.units ?: 0
         }
         return result
+    }
+
+    protected open fun isSafe():Boolean {
+        return (rebelionFleetIncoming - rebelionFleetIncoming - enemyPop) > 0
     }
 
     // we add the add to make sure that each planet have a different comparable interest
@@ -72,8 +77,6 @@ class PlanetRebel(colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet
     //var inpect: Planet;
     val sendableUnits: Int
         get() = Integer.max(colony.units!! - minPop, 0);
-    val threaten: Boolean
-        get() = (colony.units!! + rebelionFleetIncoming - rebelionFleetIncoming) <= 0
     val maxPop = colony.mu!!-(colony.gr!!*2)
     val isOverpopulated: Boolean
         get() = colony.units!! > maxPop
@@ -82,6 +85,10 @@ class PlanetRebel(colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet
             val temp = Integer.min(maxPop, /*enemyCivilainNearby.toInt()*/ + empireFleetIncoming - rebelionFleetIncoming + 1)
             return Integer.max(temp, 1)
         }
+
+    override fun isSafe():Boolean {
+        return (rebelionFleetIncoming - rebelionFleetIncoming + colony.units!!) > 0
+    }
 
     fun pourFrodon(targetId: Int, requiredFleet: Int) {
         val sentFleet = min(sendableUnits/4, requiredFleet)

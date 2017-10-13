@@ -25,12 +25,7 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
         val it = solarSystem.descendingIterator()
         while (it.hasNext()) {
             inspectPlanet = it.next()
-            if (inspectPlanet is PlanetRebel) {
-                if(inspectPlanet.threaten) {
-                    System.out.println("target : " + inspectPlanet.colony.id + " , interest = " + inspectPlanet.interest)
-                    return inspectPlanet
-                }
-            } else { //if planet does not belong to me
+            if(!inspectPlanet.safe) {
                 System.out.println("target : " + inspectPlanet.colony.id + " , interest = " + inspectPlanet.interest)
                 return inspectPlanet
             }
