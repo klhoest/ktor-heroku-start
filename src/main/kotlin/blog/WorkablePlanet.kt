@@ -41,7 +41,7 @@ open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val 
     }
 
     // we add the add to make sure that each planet have a different comparable interest
-    override fun compareTo(other: WorkablePlanet) = interest * 100 + colony.id % 100
+    override fun compareTo(other: WorkablePlanet) = (interest * 100 + colony.id % 100) - (other.interest * 100 + other.colony.id % 100)
 
     companion object {
         //__Player

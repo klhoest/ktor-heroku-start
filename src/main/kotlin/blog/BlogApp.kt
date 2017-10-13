@@ -73,8 +73,13 @@ fun Application.module() {
                         System.out.println("could not add id:" + inspectPlanet.id + " of owner: "+ inspectPlanet.owner + " with ");
                     }
                 }
-                val verdunAI = VerdunAI(solarSystem)
-                verdunAI.mobilise()
+                try {
+                    val verdunAI = VerdunAI(solarSystem)
+                    verdunAI.mobilise()
+                } catch (e:NullPointerException) {
+                    System.out.println("no target found" + e.message)
+                }
+
             }
             //var sortedPlanet:List<Planet?>? = IA.sortPlanetByDistance(returnPojo.solarSystem[0]!! ,returnPojo.solarSystem)
             call.respond(returnJSON)

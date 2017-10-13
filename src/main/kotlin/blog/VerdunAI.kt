@@ -21,12 +21,8 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
         }
 
     fun findTarget(): WorkablePlanet? {
-        var inspectPlanet:WorkablePlanet?
-        val solarSystemList = solarSystem.sorted()
-        val it = solarSystemList.iterator()
-        /*val toArray = solarSystem.toArray()
-        val sortedArray = toArray.sort()
-        sortedArray.toString()*/
+        var inspectPlanet:WorkablePlanet
+        val it = solarSystem.descendingIterator()
         while (it.hasNext()) {
             inspectPlanet = it.next()
             if (inspectPlanet is PlanetRebel) {
@@ -40,18 +36,6 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
             }
         }
         return null
-        /*for(inspectPlanet in solarSystem) {
-            if (inspectPlanet is PlanetRebel) {
-                if (inspectPlanet.threaten) {
-                    System.out.println("target : " + inspectPlanet.colony.id + " , interest = " + inspectPlanet.interest)
-                    return inspectPlanet
-                }
-            } else {
-                System.out.println("target : " + inspectPlanet.colony.id + " , interest = " + inspectPlanet.interest)
-                return inspectPlanet
-            }
-        }
-        return null*/
     }
 
     fun itsATrap() {
