@@ -85,6 +85,7 @@ class PlanetRebel(colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet
             val temp = Integer.min(maxPop, /*enemyCivilainNearby.toInt()*/ + empireFleetIncoming - rebelionFleetIncoming + 1)
             return Integer.max(temp, 1)
         }
+    var alreadySentFleet:Int = 0
 
     override fun isSafe():Boolean {
         return (rebelionFleetIncoming - rebelionFleetIncoming + colony.units!!) > 0
@@ -94,6 +95,7 @@ class PlanetRebel(colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet
         val sentFleet = min(sendableUnits/4, requiredFleet)
         if(sentFleet >= 3) {
             System.out.println("pourFrodon. send "+ (sendableUnits) + "/" + this.colony.units + " on target: " + targetId + "from "+ this.colony.id +" remains " + (requiredFleet-sendableUnits/4) )
+            alreadySentFleet += sentFleet
             returnJSON.fleets.add(FleetOrder(sentFleet, source = colony.id, target = targetId))
         }
     }
