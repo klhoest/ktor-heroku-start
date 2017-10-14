@@ -14,6 +14,7 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.content.readText
 import org.jetbrains.ktor.features.CallLogging
+import org.nield.kotlinstatistics.multiKMeansCluster
 //import org.jetbrains.ktor.heroku.module
 import java.util.TreeSet
 
@@ -52,28 +53,10 @@ fun Application.module() {
                 call.respond(returnJSON)
             }
             if (inputPojo != null) {
-                val solarSystemPojo = inputPojo.planets.filterNotNull()
 
-                val laRebelionPojo = solarSystemPojo.filter { planet: Planet -> planet.owner!! == WorkablePlanet.ME; }
-                val lEmpirePojo = solarSystemPojo.filter { planet: Planet -> planet.owner!! != WorkablePlanet.ME; }
+                val galaxy = Galaxy(inputPojo)
+                galaxy.generateClusters()
 
-                val allFleet = inputPojo.fleets!!.filterNotNull()
-                val rebelionFleet = allFleet.filter { fleet -> fleet.owner!! == WorkablePlanet.ME; }
-                val empireFleet = allFleet.filter { fleet -> fleet.owner!! != WorkablePlanet.ME; }
-
-                val solarSystem = TreeSet<WorkablePlanet>()
-                for (inspectPlanet in solarSystemPojo) {
-                    try {
-                        System.out.println("adding id:" + inspectPlanet.id + " of owner: "+ inspectPlanet.owner + " with growing of : " + inspectPlanet.gr);
-                        if (inspectPlanet.owner == WorkablePlanet.ME) {
-                            solarSystem.add(PlanetRebel(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet))
-                        } else {
-                            solarSystem.add(WorkablePlanet(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet))
-                        }
-                    } catch (e:ClassCastException) {
-                        System.out.println("could not add id:" + inspectPlanet.id + " of owner: "+ inspectPlanet.owner + " with ");
-                    }
-                }
                 try {
                     val verdunAI = VerdunAI(solarSystem)
                     verdunAI.mobilise()
@@ -102,6 +85,49 @@ fun main(args: Array<String>) {
 fun generatePojo(inputBody: String): Pojo {
     val gson = Gson()
     return gson.fromJson<Pojo>(inputBody, Pojo::class.java)
+}
+
+class Galaxy(inputPojo: Pojo) {
+    val solarSystemPojo = inputPojo.planets.filterNotNull()
+
+    val laRebelionPojo = solarSystemPojo.filter { planet: Planet -> planet.owner!! == WorkablePlanet.ME; }
+    val lEmpirePojo = solarSystemPojo.filter { planet: Planet -> planet.owner!! != WorkablePlanet.ME; }
+
+    val allFleet = inputPojo.fleets!!.filterNotNull()
+    val rebelionFleet = allFleet.filter { fleet -> fleet.owner!! == WorkablePlanet.ME; }
+    val empireFleet = allFleet.filter { fleet -> fleet.owner!! != WorkablePlanet.ME; }
+
+    fun generateClusters() {
+        val wSolarSystem: List<WorkablePlanet?> = solarSystemPojo.map { inspectPlanet ->
+            planetFactory(inspectPlanet)
+        }
+        val clusters = wSolarSystem.filterNotNull().multiKMeansCluster(k = 4,
+                maxIterations = 1000,
+                trialCount = 50,
+                xSelector = { it.colony.x },
+                ySelector = { it.colony.y }
+        )
+        clusters.forEachIndexed { index, item ->
+            println("CENTROID: $index")
+            item.points.forEach {
+                println("\t$it")
+            }
+        }
+    }
+
+    private fun planetFactory(inspectPlanet: Planet): WorkablePlanet? {
+        try {
+            System.out.println("adding id:" + inspectPlanet.id + " of owner: " + inspectPlanet.owner + " with growing of : " + inspectPlanet.gr);
+            if (inspectPlanet.owner == WorkablePlanet.ME) {
+                return PlanetRebel(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet)
+            } else {
+                return WorkablePlanet(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet)
+            }
+        } catch (e: ClassCastException) {
+            System.out.println("could not add id:" + inspectPlanet.id + " of owner: " + inspectPlanet.owner + " with ");
+            return null
+        }
+    }
 }
 
 

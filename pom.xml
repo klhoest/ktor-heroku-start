@@ -59,6 +59,11 @@
             <artifactId>ktor-gson</artifactId>
             <version>${ktor.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.nield</groupId>
+            <artifactId>kotlinstatistics</artifactId>
+            <version>0.3.0</version>
+        </dependency>
     </dependencies>
     <build>
         <sourceDirectory>src/main/kotlin</sourceDirectory>
