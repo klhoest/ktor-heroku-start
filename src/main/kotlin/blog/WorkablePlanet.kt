@@ -1,10 +1,11 @@
 package blog
 
+import java.lang.Integer.max
 import java.lang.Integer.min
 
 open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val lEmpire: List<Planet>, val rebelionFleet: List<Fleet>, val empireFleet: List<Fleet>) : Comparable<WorkablePlanet> {
 
-    val interest: Int = colony.gr!! - empireFleetIncoming/10 - enemyPop/10;
+    val interest: Int = colony.gr!! - empireFleetIncoming / 10 - enemyPop / 20;
     val enemyPop: Int
         get() {
             if (colony.owner == ME) {
@@ -17,9 +18,9 @@ open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val 
     val remainingPlace: Int
         get() = colony.mu!! - colony.units!!
     val empireFleetIncoming: Int
-        get() = getIncomingFleet(fleetNationality = empireFleet)
+        get() = getEnemyFleet()
     val rebelionFleetIncoming: Int
-        get() = getIncomingFleet(fleetNationality = rebelionFleet)
+        get() = getRebelionFleet()
     val enemyCivilainNearby: Double = getNearbyCivilian(lEmpire)
     val rebelCivilianNearby: Double = getNearbyCivilian(laRebelion)
 
@@ -32,17 +33,31 @@ open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val 
         return result
     }
 
-    protected fun getIncomingFleet(fleetNationality: List<Fleet>): Int {
+    fun getRebelionFleet(): Int {
         var result = 0
-        val incomingFleet = fleetNationality.filter({ fleet -> fleet.to == colony.id })
+        val incomingFleet = rebelionFleet.filter({ fleet -> fleet.to == colony.id })
         for (inpectFleet in incomingFleet) {
             result += inpectFleet.units ?: 0
         }
         return result
     }
 
+    fun getEnemyFleet(): Int {
+        val incomingFleet = empireFleet.filter({ fleet -> fleet.to == colony.id })
+        //var FleetEnemyArray: Array<List<Fleet>> = Array(3, {ownerIndice -> incomingFleet.filter {  fleet -> fleet.owner == ownerIndice+ ME }})
+        var result = incomingFleet.sumBy { it.units ?: 0 }
+        when (colony.owner) {
+            Guilde_du_Commerce -> result = max(result, enemyPop)
+            ME -> result = result
+            else -> {
+                result = result + enemyPop
+            }
+        }
+        return result
+    }
+
     protected open fun isSafe():Boolean {
-        return (rebelionFleetIncoming - empireFleetIncoming - enemyPop) > 0
+        return (rebelionFleetIncoming - empireFleetIncoming) > 0
     }
 
     // we add the add to make sure that each planet have a different comparable interest
@@ -82,26 +97,26 @@ class PlanetRebel(colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet
         get() = colony.units!! > maxPop
     val minPop: Int
         get() {
-            val temp = Integer.min(maxPop, /*enemyCivilainNearby.toInt()*/ + empireFleetIncoming - rebelionFleetIncoming + 1)
+            val temp = Integer.min(maxPop, /*enemyCivilainNearby.toInt()*/ +empireFleetIncoming - rebelionFleetIncoming + 1)
             return Integer.max(temp, 1)
         }
     var alreadySentFleet:Int = 0
 
-    override fun isSafe():Boolean {
+    override fun isSafe(): Boolean {
         return (rebelionFleetIncoming - empireFleetIncoming + colony.units!!) > 0
     }
 
     fun pourFrodon(targetId: Int, requiredFleet: Int): Int {
-        var sentFleet = min(sendableUnits/4, requiredFleet)
-        if(sentFleet < 3) {
-            if(sendableUnits<3) {
+        var sentFleet = min(sendableUnits / 4, requiredFleet)
+        if (sentFleet < 3) {
+            if (sendableUnits < 3) {
                 System.out.println("the sendable units are lower than 3")
                 return 0
             } else {
                 sentFleet = 3
             }
         }
-        System.out.println("pourFrodon. send "+ (sendableUnits) + "/" + this.colony.units + " on innerTarget: " + targetId + "from "+ this.colony.id +" remains " + (requiredFleet-sendableUnits/4) )
+        System.out.println("pourFrodon. send " + (sendableUnits) + "/" + this.colony.units + " on innerTarget: " + targetId + "from " + this.colony.id + " remains " + (requiredFleet - sendableUnits / 4))
         alreadySentFleet += sentFleet
         returnJSON.fleets.add(FleetOrder(sentFleet, source = colony.id, target = targetId))
         return sentFleet

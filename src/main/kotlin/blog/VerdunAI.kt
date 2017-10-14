@@ -22,9 +22,9 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
         get() {
             var extraCare = 0
             if (innerTarget.colony.owner != WorkablePlanet.Guilde_du_Commerce) {
-                extraCare = 10
+                extraCare = 5 + innerTarget.colony.gr!!*2
             }
-            return extraCare + innerTarget.enemyPop + innerTarget.empireFleetIncoming + (innerTarget.enemyCivilainNearby - innerTarget.rebelCivilianNearby).toInt() - innerTarget.rebelionFleetIncoming - sentFleet
+            return extraCare + innerTarget.empireFleetIncoming + (innerTarget.enemyCivilainNearby - innerTarget.rebelCivilianNearby).toInt() - innerTarget.rebelionFleetIncoming - sentFleet
         }
     var sentFleet = 0
     val overPopulatedPlanetList: ArrayList<PlanetRebel>
@@ -86,8 +86,8 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
         while (requiredArmy > 0 && it.hasNext()) {
             sentFleet += it.next().pourFrodon(innerTarget.colony.id, requiredArmy)
         }
-        /*if(requiredArmy>0 && !mobiliseOverpopulation) {
+        if(requiredArmy>0 && !mobiliseOverpopulation) {
             itsATrap();
-        }*/
+        }
     }
 }
