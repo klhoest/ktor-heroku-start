@@ -5,7 +5,15 @@ import java.util.TreeSet
 class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
 
     val target:WorkablePlanet = findTarget()!! // todo
-    var requiredArmy:Int = target.enemyPop + target.empireFleetIncoming + (target.enemyCivilainNearby-target.rebelCivilianNearby).toInt() - target.rebelionFleetIncoming
+    val requiredArmy:Int
+        get() {
+            var extraCare = 0
+            if(target.colony.owner != WorkablePlanet.Guilde_du_Commerce) {
+                extraCare = 10
+            }
+            return extraCare + target.enemyPop + target.empireFleetIncoming + (target.enemyCivilainNearby - target.rebelCivilianNearby).toInt() - target.rebelionFleetIncoming - sentFleet
+        }
+    var sentFleet = 0
     val overPopulatedPlanetList: ArrayList<PlanetRebel>
         get() {
             val result = ArrayList<PlanetRebel>()
@@ -38,7 +46,7 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
         for(inspectedPlanet in overPopulatedPlanetList) {
             if(requiredArmy<0)
                 return
-            requiredArmy -= inspectedPlanet.pourFrodon(target.colony.id, requiredArmy)
+            sentFleet = inspectedPlanet.pourFrodon(target.colony.id, requiredArmy)
             mobiliseOverpopulation = true;
         }
         val it = solarSystem.iterator()
