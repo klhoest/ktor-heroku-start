@@ -5,18 +5,13 @@ import java.util.TreeSet
 class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
 
     val target:WorkablePlanet = findTarget()!! // todo
-    val requiredArmy:Int
-        get() = target.enemyPop + target.empireFleetIncoming + (target.enemyCivilainNearby-target.rebelCivilianNearby).toInt() - target.rebelionFleetIncoming
+    var requiredArmy:Int = target.enemyPop + target.empireFleetIncoming + (target.enemyCivilainNearby-target.rebelCivilianNearby).toInt() - target.rebelionFleetIncoming
     val overPopulatedPlanetList: ArrayList<PlanetRebel>
         get() {
             val result = ArrayList<PlanetRebel>()
-            for(inspectPlanet in solarSystem) {
-                if (inspectPlanet is PlanetRebel) {
-                    if(inspectPlanet.isOverpopulated) {
-                        result.add(inspectPlanet)
-                    }
-                }
-            }
+            solarSystem
+                    .filterIsInstance<PlanetRebel>()
+                    .filterTo(result) { it.isOverpopulated }
             return result
         }
 
@@ -30,6 +25,7 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
                 return inspectPlanet
             }
         }
+        System.out.println("no target found. skip this turn");
         return null
     }
 
@@ -42,7 +38,7 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
         for(inspectedPlanet in overPopulatedPlanetList) {
             if(requiredArmy<0)
                 return
-            inspectedPlanet.pourFrodon(target.colony.id, requiredArmy)
+            requiredArmy -= inspectedPlanet.pourFrodon(target.colony.id, requiredArmy)
             mobiliseOverpopulation = true;
         }
         val it = solarSystem.iterator()
