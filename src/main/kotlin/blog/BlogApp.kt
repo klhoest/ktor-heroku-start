@@ -18,6 +18,7 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.content.readText
 import org.jetbrains.ktor.features.CallLogging
+import java.lang.Math.floorDiv
 //import org.jetbrains.ktor.heroku.module
 import java.util.TreeSet
 
@@ -64,15 +65,18 @@ fun Application.module() {
                 val allFleet = inputPojo.fleets!!.filterNotNull()
                 val rebelionFleet = allFleet.filter { fleet -> fleet.owner!! == WorkablePlanet.ME; }
                 val empireFleet = allFleet.filter { fleet -> fleet.owner!! != WorkablePlanet.ME; }
-                solarSystemGrid = generateSolarSystemGrid(solarSystemPojo, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet )
+                val solarSystemGrid = generateSolarSystemGrid(solarSystemPojo, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet )
 
-                try {
-                    val verdunAI = VerdunAI(solarSystemGrid)
-                    verdunAI.mobilise()
-                } catch (e:NullPointerException) {
-                    System.out.println("no target found" + e.message)
+                for(x in 0 until W){
+                    for(y in 0 until H) {
+                        try {
+                            val verdunAI = VerdunAI(solarSystemGrid[x][y])
+                            verdunAI.mobilise()
+                        } catch (e:NullPointerException) {
+                            System.out.println("no target found" + e.message)
+                        }
+                    }
                 }
-
             }
             //var sortedPlanet:List<Planet?>? = IA.sortPlanetByDistance(returnPojo.solarSystem[0]!! ,returnPojo.solarSystem)
             call.respond(returnJSON)
@@ -94,23 +98,22 @@ fun main(args: Array<String>) {
 fun generateSolarSystemGrid(solarSystemPojo: List<Planet>, laRebelionPojo: List<Planet>, lEmpirePojo: List<Planet>, rebelionFleet: List<Fleet>, empireFleet: List<Fleet>)
 :Array<Array<TreeSet<WorkablePlanet>>>{
 
-    val solarSystemGrid: Array<Array<TreeSet<WorkablePlanet>?>> = Array(VerdunAI.W, {arrayOfNulls<TreeSet<WorkablePlanet>>(size = H)})
-    for(x in 0..W) {
-        solarSystemGrid[x] = Array(H, {TreeSet<WorkablePlanet>()})
-    }
+    val solarSystemGrid: Array<Array<TreeSet<WorkablePlanet>>> = Array<Array<TreeSet<WorkablePlanet>>>(W, { Array(H, {TreeSet<WorkablePlanet>()})})
 
     for (inspectPlanet in solarSystemPojo) {
-        val x:Int = (inspectPlanet.x/(SCREEN_X/W)).toInt()
-        val y:Int = (inspectPlanet.y/(SCREEN_Y/H)).toInt()
+        val x:Int = floorDiv(inspectPlanet.x.toInt(), (SCREEN_X/W))
+        val y:Int = floorDiv(inspectPlanet.y.toInt(), (SCREEN_Y/H))
         try {
             System.out.println("adding id:" + inspectPlanet.id + " of owner: "+ inspectPlanet.owner + " with growing of : " + inspectPlanet.gr);
             if (inspectPlanet.owner == WorkablePlanet.ME) {
-                solarSystemGrid[x][y]!!.add(PlanetRebel(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet))
+                solarSystemGrid[x][y].add(PlanetRebel(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet))
             } else {
-                solarSystemGrid[x][y]!!.add(WorkablePlanet(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet))
+                solarSystemGrid[x][y].add(WorkablePlanet(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet))
             }
         } catch (e:ClassCastException) {
             System.out.println("could not add id:" + inspectPlanet.id + " of owner: "+ inspectPlanet.owner + " with ");
+        } catch (e:ArrayIndexOutOfBoundsException) {
+            System.out.println("wrong grid positionning" + e.message)
         }
     }
     return solarSystemGrid
