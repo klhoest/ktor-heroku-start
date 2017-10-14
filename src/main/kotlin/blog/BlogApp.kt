@@ -3,6 +3,10 @@ package blog
 /*import com.github.salomonbrys.kotson.fromJson
 import com.github.salomonbrys.kotson.jsonArray
 import com.github.salomonbrys.kotson.jsonObject*/
+import blog.VerdunAI.Companion.H
+import blog.VerdunAI.Companion.SCREEN_X
+import blog.VerdunAI.Companion.SCREEN_Y
+import blog.VerdunAI.Companion.W
 import com.google.gson.Gson
 import org.jetbrains.ktor.netty.*
 import org.jetbrains.ktor.routing.*
@@ -60,22 +64,10 @@ fun Application.module() {
                 val allFleet = inputPojo.fleets!!.filterNotNull()
                 val rebelionFleet = allFleet.filter { fleet -> fleet.owner!! == WorkablePlanet.ME; }
                 val empireFleet = allFleet.filter { fleet -> fleet.owner!! != WorkablePlanet.ME; }
+                solarSystemGrid = generateSolarSystemGrid(solarSystemPojo, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet )
 
-                val solarSystem = TreeSet<WorkablePlanet>()
-                for (inspectPlanet in solarSystemPojo) {
-                    try {
-                        System.out.println("adding id:" + inspectPlanet.id + " of owner: "+ inspectPlanet.owner + " with growing of : " + inspectPlanet.gr);
-                        if (inspectPlanet.owner == WorkablePlanet.ME) {
-                            solarSystem.add(PlanetRebel(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet))
-                        } else {
-                            solarSystem.add(WorkablePlanet(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet))
-                        }
-                    } catch (e:ClassCastException) {
-                        System.out.println("could not add id:" + inspectPlanet.id + " of owner: "+ inspectPlanet.owner + " with ");
-                    }
-                }
                 try {
-                    val verdunAI = VerdunAI(solarSystem)
+                    val verdunAI = VerdunAI(solarSystemGrid)
                     verdunAI.mobilise()
                 } catch (e:NullPointerException) {
                     System.out.println("no target found" + e.message)
@@ -97,6 +89,31 @@ fun main(args: Array<String>) {
     } catch (e:NumberFormatException) {
         embeddedServer(Netty, port = 8080, watchPaths = listOf("BlogAppKt"), module = Application::module).start()
     }
+}
+
+fun generateSolarSystemGrid(solarSystemPojo: List<Planet>, laRebelionPojo: List<Planet>, lEmpirePojo: List<Planet>, rebelionFleet: List<Fleet>, empireFleet: List<Fleet>)
+:Array<Array<TreeSet<WorkablePlanet>>>{
+
+    val solarSystemGrid: Array<Array<TreeSet<WorkablePlanet>?>> = Array(VerdunAI.W, {arrayOfNulls<TreeSet<WorkablePlanet>>(size = H)})
+    for(x in 0..W) {
+        solarSystemGrid[x] = Array(H, {TreeSet<WorkablePlanet>()})
+    }
+
+    for (inspectPlanet in solarSystemPojo) {
+        val x:Int = (inspectPlanet.x/(SCREEN_X/W)).toInt()
+        val y:Int = (inspectPlanet.y/(SCREEN_Y/H)).toInt()
+        try {
+            System.out.println("adding id:" + inspectPlanet.id + " of owner: "+ inspectPlanet.owner + " with growing of : " + inspectPlanet.gr);
+            if (inspectPlanet.owner == WorkablePlanet.ME) {
+                solarSystemGrid[x][y]!!.add(PlanetRebel(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet))
+            } else {
+                solarSystemGrid[x][y]!!.add(WorkablePlanet(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet))
+            }
+        } catch (e:ClassCastException) {
+            System.out.println("could not add id:" + inspectPlanet.id + " of owner: "+ inspectPlanet.owner + " with ");
+        }
+    }
+    return solarSystemGrid
 }
 
 fun generatePojo(inputBody: String): Pojo {

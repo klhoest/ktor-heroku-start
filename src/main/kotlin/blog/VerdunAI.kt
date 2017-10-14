@@ -60,4 +60,12 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
             itsATrap();
         }*/
     }
+
+    companion object {
+        const val W = 2-1
+        const val H = 2-1
+
+        const val SCREEN_X = 1500.0
+        const val SCREEN_Y = 700
+    }
 }
