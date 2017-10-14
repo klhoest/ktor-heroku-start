@@ -42,7 +42,7 @@ open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val 
     }
 
     protected open fun isSafe():Boolean {
-        return (rebelionFleetIncoming - rebelionFleetIncoming - enemyPop) > 0
+        return (rebelionFleetIncoming - empireFleetIncoming - enemyPop) > 0
     }
 
     // we add the add to make sure that each planet have a different comparable interest
@@ -88,7 +88,7 @@ class PlanetRebel(colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet
     var alreadySentFleet:Int = 0
 
     override fun isSafe():Boolean {
-        return (rebelionFleetIncoming - rebelionFleetIncoming + colony.units!!) > 0
+        return (rebelionFleetIncoming - empireFleetIncoming + colony.units!!) > 0
     }
 
     fun pourFrodon(targetId: Int, requiredFleet: Int): Int {
