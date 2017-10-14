@@ -1,8 +1,9 @@
 package blog
 
 import org.nield.kotlinstatistics.Centroid
+import java.util.*
 
-class VerdunAI(val localCluster: Centroid<WorkablePlanet>, clusters: List<Centroid<WorkablePlanet>>) {
+class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<VerdunAI>) {
 
     var solarSystemCell = localCluster.points.sortedDescending()
     var orderRebelPlanets = solarSystemCell.filterIsInstance<PlanetRebel>()
@@ -58,6 +59,17 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>, clusters: List<Centro
         return null
     }
 
+    fun findOutterTarget(): WorkablePlanet {
+        var cellTargets = TreeMap<Double, WorkablePlanet>()
+        AIList.forEach { inspectAI ->
+            val target = inspectAI.innerTarget
+            val key = (target.interest - Math.hypot(localCluster.center.x - target.colony.x, localCluster.center.y - target.colony.y)/40)*-1
+            cellTargets.put(key, target)
+        }
+        val it = cellTargets.iterator()
+        return cellTargets.firstEntry().value
+    }
+
     fun itsATrap() {
         returnJSON.fleets.clear()
     }
@@ -72,7 +84,7 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>, clusters: List<Centro
         }
         val it = orderRebelPlanets.iterator()
         while (requiredArmy > 0 && it.hasNext()) {
-            it.next().pourFrodon(innerTarget.colony.id, requiredArmy)
+            sentFleet += it.next().pourFrodon(innerTarget.colony.id, requiredArmy)
         }
         /*if(requiredArmy>0 && !mobiliseOverpopulation) {
             itsATrap();

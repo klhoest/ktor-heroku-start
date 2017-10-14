@@ -56,11 +56,14 @@ fun Application.module() {
 
                 val galaxy = Galaxy(inputPojo)
                 val clusters = galaxy.generateClusters()
+                val AIList = ArrayList<VerdunAI>(clusters.size)
+                clusters.forEach { cluster ->
+                    AIList.add(VerdunAI(cluster, AIList));
+                }
 
-                clusters.forEachIndexed { index, cluster ->
+                AIList.forEachIndexed { index, verdunAI ->
                     println("CENTROID: $index")
                     try {
-                        val verdunAI = VerdunAI(cluster, clusters)
                         verdunAI.print()
                         verdunAI.mobilise()
                     } catch (e:NullPointerException) {
@@ -111,7 +114,7 @@ class Galaxy(inputPojo: Pojo) {
                 xSelector = { it.colony.x },
                 ySelector = { it.colony.y }
         )
-        clusters.forEachIndexed { index, cluster ->
+        /*clusters.forEachIndexed { index, cluster ->
             println("CENTROID: $index")
             cluster.points.forEach {
                 var extraTab = "\t"
@@ -120,7 +123,7 @@ class Galaxy(inputPojo: Pojo) {
                 }
                 println(extraTab + "\t planet${it.colony.id}, of owner ${it.colony.owner}, interset:${it.interest}, gr:${it.colony.gr}")
             }
-        }
+        }*/
         return clusters;
     }
 
