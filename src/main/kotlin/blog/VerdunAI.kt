@@ -4,36 +4,47 @@ import java.util.TreeSet
 
 class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
 
-    val target:WorkablePlanet = findTarget()!! // todo
-    val requiredArmy:Int
+    var orderRebelPlanets = solarSystemCell.filterIsInstance<PlanetRebel>()
+    val cellCenterscreen: Pair<Double, Double> = findBarycentre()
+    var rebelInside: Int = 0
+        get() {
+            var result = 0
+            for (inspectPlanet in solarSystemCell) {
+                result += inspectPlanet.rebelionFleetIncoming
+                if (inspectPlanet is PlanetRebel)
+                    result += inspectPlanet.colony.units!!
+            }
+            return result
+        }
+    val innerTarget: WorkablePlanet = findInnerTarget()!! // todo
+    val requiredArmy: Int
         get() {
             var extraCare = 0
-            if(target.colony.owner != WorkablePlanet.Guilde_du_Commerce) {
+            if (innerTarget.colony.owner != WorkablePlanet.Guilde_du_Commerce) {
                 extraCare = 10
             }
-            return extraCare + target.enemyPop + target.empireFleetIncoming + (target.enemyCivilainNearby - target.rebelCivilianNearby).toInt() - target.rebelionFleetIncoming - sentFleet
+            return extraCare + innerTarget.enemyPop + innerTarget.empireFleetIncoming + (innerTarget.enemyCivilainNearby - innerTarget.rebelCivilianNearby).toInt() - innerTarget.rebelionFleetIncoming - sentFleet
         }
     var sentFleet = 0
     val overPopulatedPlanetList: ArrayList<PlanetRebel>
         get() {
             val result = ArrayList<PlanetRebel>()
-            solarSystem
-                    .filterIsInstance<PlanetRebel>()
+            orderRebelPlanets
                     .filterTo(result) { it.isOverpopulated }
             return result
         }
 
-    fun findTarget(): WorkablePlanet? {
-        var inspectPlanet:WorkablePlanet
-        val it = solarSystem.descendingIterator()
+    fun findInnerTarget(): WorkablePlanet? {
+        var inspectPlanet: WorkablePlanet
+        val it = solarSystemCell.descendingIterator()
         while (it.hasNext()) {
             inspectPlanet = it.next()
-            if(!inspectPlanet.safe) {
-                System.out.println("target : " + inspectPlanet.colony.id + " , interest = " + inspectPlanet.interest)
+            if (!inspectPlanet.safe) {
+                System.out.println("innerTarget : " + inspectPlanet.colony.id + " , interest = " + inspectPlanet.interest)
                 return inspectPlanet
             }
         }
-        System.out.println("no target found. skip this turn");
+        System.out.println("no innerTarget found. skip this turn");
         return null
     }
 
@@ -43,18 +54,15 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
 
     fun mobilise() {
         var mobiliseOverpopulation = false
-        for(inspectedPlanet in overPopulatedPlanetList) {
-            if(requiredArmy<0)
+        for (inspectedPlanet in overPopulatedPlanetList) {
+            if (requiredArmy < 0)
                 return
-            sentFleet = inspectedPlanet.pourFrodon(target.colony.id, requiredArmy)
+            sentFleet = inspectedPlanet.pourFrodon(innerTarget.colony.id, requiredArmy)
             mobiliseOverpopulation = true;
         }
-        val it = solarSystem.iterator()
-        while(requiredArmy > 0 && it.hasNext()) {
-            val inspectPlanet = it.next()
-            if(inspectPlanet is PlanetRebel) {
-                inspectPlanet.pourFrodon(target.colony.id, requiredArmy)
-            }
+        val it = orderRebelPlanets.iterator()
+        while (requiredArmy > 0 && it.hasNext()) {
+            it.next().pourFrodon(innerTarget.colony.id, requiredArmy)
         }
         /*if(requiredArmy>0 && !mobiliseOverpopulation) {
             itsATrap();
