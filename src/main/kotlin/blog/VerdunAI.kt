@@ -1,11 +1,11 @@
 package blog
 
-import java.util.TreeSet
+import org.nield.kotlinstatistics.Centroid
 
-class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
+class VerdunAI(val localCluster: Centroid<WorkablePlanet>, clusters: List<Centroid<WorkablePlanet>>) {
 
+    var solarSystemCell = localCluster.points.sortedDescending()
     var orderRebelPlanets = solarSystemCell.filterIsInstance<PlanetRebel>()
-    val cellCenterscreen: Pair<Double, Double> = findBarycentre()
     var rebelInside: Int = 0
         get() {
             var result = 0
@@ -34,9 +34,19 @@ class VerdunAI(val solarSystem: TreeSet<WorkablePlanet>) {
             return result
         }
 
+    fun print() {
+        solarSystemCell.forEach {
+            var extraTab = "\t"
+            if (it.colony.owner == WorkablePlanet.ME) {
+                extraTab = "\tX "
+            }
+            println(extraTab + "planet${it.colony.id}, of owner ${it.colony.owner}, interset:${it.interest}, gr:${it.colony.gr}")
+        }
+    }
+
     fun findInnerTarget(): WorkablePlanet? {
         var inspectPlanet: WorkablePlanet
-        val it = solarSystemCell.descendingIterator()
+        val it = solarSystemCell.iterator()
         while (it.hasNext()) {
             inspectPlanet = it.next()
             if (!inspectPlanet.safe) {

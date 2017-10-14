@@ -14,9 +14,9 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.content.readText
 import org.jetbrains.ktor.features.CallLogging
+import org.nield.kotlinstatistics.Centroid
 import org.nield.kotlinstatistics.multiKMeansCluster
 //import org.jetbrains.ktor.heroku.module
-import java.util.TreeSet
 
 
 data class ReturnJSON(var fleets: ArrayList<FleetOrder> = ArrayList(), var terraformings: ArrayList<TeraformOrder> = ArrayList())
@@ -55,13 +55,17 @@ fun Application.module() {
             if (inputPojo != null) {
 
                 val galaxy = Galaxy(inputPojo)
-                galaxy.generateClusters()
+                val clusters = galaxy.generateClusters()
 
-                try {
-                    val verdunAI = VerdunAI(solarSystem)
-                    verdunAI.mobilise()
-                } catch (e:NullPointerException) {
-                    System.out.println("no target found" + e.message)
+                clusters.forEachIndexed { index, cluster ->
+                    println("CENTROID: $index")
+                    try {
+                        val verdunAI = VerdunAI(cluster, clusters)
+                        verdunAI.print()
+                        verdunAI.mobilise()
+                    } catch (e:NullPointerException) {
+                        System.out.println("no target found" + e.message)
+                    }
                 }
 
             }
@@ -97,27 +101,32 @@ class Galaxy(inputPojo: Pojo) {
     val rebelionFleet = allFleet.filter { fleet -> fleet.owner!! == WorkablePlanet.ME; }
     val empireFleet = allFleet.filter { fleet -> fleet.owner!! != WorkablePlanet.ME; }
 
-    fun generateClusters() {
+    fun generateClusters(): List<Centroid<WorkablePlanet>> {
         val wSolarSystem: List<WorkablePlanet?> = solarSystemPojo.map { inspectPlanet ->
             planetFactory(inspectPlanet)
         }
-        val clusters = wSolarSystem.filterNotNull().multiKMeansCluster(k = 4,
+        val clusters = wSolarSystem.filterNotNull().multiKMeansCluster(k = 2,
                 maxIterations = 1000,
                 trialCount = 50,
                 xSelector = { it.colony.x },
                 ySelector = { it.colony.y }
         )
-        clusters.forEachIndexed { index, item ->
+        clusters.forEachIndexed { index, cluster ->
             println("CENTROID: $index")
-            item.points.forEach {
-                println("\t$it")
+            cluster.points.forEach {
+                var extraTab = "\t"
+                if (it.colony.owner == WorkablePlanet.ME) {
+                    extraTab = ""
+                }
+                println(extraTab + "\t planet${it.colony.id}, of owner ${it.colony.owner}, interset:${it.interest}, gr:${it.colony.gr}")
             }
         }
+        return clusters;
     }
 
     private fun planetFactory(inspectPlanet: Planet): WorkablePlanet? {
         try {
-            System.out.println("adding id:" + inspectPlanet.id + " of owner: " + inspectPlanet.owner + " with growing of : " + inspectPlanet.gr);
+            //System.out.println("adding id:" + inspectPlanet.id + " of owner: " + inspectPlanet.owner + " with growing of : " + inspectPlanet.gr);
             if (inspectPlanet.owner == WorkablePlanet.ME) {
                 return PlanetRebel(inspectPlanet, laRebelionPojo, lEmpirePojo, rebelionFleet, empireFleet)
             } else {
