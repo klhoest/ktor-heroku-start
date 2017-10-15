@@ -3,7 +3,7 @@ package blog
 import java.lang.Integer.max
 import java.lang.Integer.min
 
-open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val lEmpire: List<Planet>, val rebelionFleet: List<Fleet>, val empireFleet: List<Fleet>) : Comparable<WorkablePlanet> {
+open class WorkablePlanet(val colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet>, val rebelionFleet: List<Fleet>, val empireFleet: List<Fleet>) : Comparable<WorkablePlanet> {
 
     val interest: Int = colony.gr!! - empireFleetIncoming / 10 - enemyPop / 20;
     val enemyPop: Int
@@ -15,8 +15,6 @@ open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val 
             }
         }
     val safe: Boolean = isSafe()
-    val remainingPlace: Int
-        get() = colony.mu!! - colony.units!!
     val empireFleetIncoming: Int
         get() = getEnemyFleet()
     val rebelionFleetIncoming: Int
@@ -24,7 +22,7 @@ open class WorkablePlanet(val colony: Planet, val laRebelion: List<Planet>, val 
     val enemyCivilainNearby: Double = getNearbyCivilian(lEmpire)
     val rebelCivilianNearby: Double = getNearbyCivilian(laRebelion)
 
-    protected fun getNearbyCivilian(fleetNationality: List<Planet>): Double {
+    fun getNearbyCivilian(fleetNationality: List<Planet>): Double {
         var result = 0.0
         for (inspectPlanet in fleetNationality) {
             if(inspectPlanet != this.colony)

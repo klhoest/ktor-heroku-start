@@ -1,13 +1,9 @@
 package blog
 
-/*import com.github.salomonbrys.kotson.fromJson
-import com.github.salomonbrys.kotson.jsonArray
-import com.github.salomonbrys.kotson.jsonObject*/
 import com.google.gson.Gson
 import org.jetbrains.ktor.netty.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.application.*
-//import org.jetbrains.ktor.features.CallLogging
 import org.jetbrains.ktor.features.DefaultHeaders
 import org.jetbrains.ktor.gson.GsonSupport
 import org.jetbrains.ktor.host.*
@@ -16,19 +12,16 @@ import org.jetbrains.ktor.content.readText
 import org.jetbrains.ktor.features.CallLogging
 import org.nield.kotlinstatistics.Centroid
 import org.nield.kotlinstatistics.multiKMeansCluster
-//import org.jetbrains.ktor.heroku.module
 
 
 data class ReturnJSON(var fleets: ArrayList<FleetOrder> = ArrayList(), var terraformings: ArrayList<TeraformOrder> = ArrayList())
 data class FleetOrder(val units: Int, val source: Int, val target: Int)
 data class TeraformOrder(var planet: Int)
 
-public val returnJSON = ReturnJSON()
-
+val returnJSON = ReturnJSON()
 
 fun Application.module() {
     install(DefaultHeaders)
-    //install(Compression)
     install(CallLogging)
 
     install(GsonSupport) {
@@ -77,7 +70,6 @@ fun Application.module() {
                 }
 
             }
-            //var sortedPlanet:List<Planet?>? = IA.sortPlanetByDistance(returnPojo.solarSystem[0]!! ,returnPojo.solarSystem)
             call.respond(returnJSON)
 
         }
@@ -119,16 +111,6 @@ class Galaxy(inputPojo: Pojo) {
                 xSelector = { it.colony.x },
                 ySelector = { it.colony.y }
         )
-        /*clusters.forEachIndexed { index, cluster ->
-            println("CENTROID: $index")
-            cluster.points.forEach {
-                var extraTab = "\t"
-                if (it.colony.owner == WorkablePlanet.ME) {
-                    extraTab = ""
-                }
-                println(extraTab + "\t planet${it.colony.id}, of owner ${it.colony.owner}, interset:${it.interest}, gr:${it.colony.gr}")
-            }
-        }*/
         return clusters;
     }
 

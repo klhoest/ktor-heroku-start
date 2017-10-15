@@ -55,7 +55,7 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
         }
     }
 
-    inner class InerTarget() : Targeting {
+    inner class InerTarget : Targeting {
 
         override val target: WorkablePlanet = findTarget()!! // todo
         override val requiredArmy: Int
