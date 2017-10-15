@@ -44,7 +44,7 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
     }
 
     interface Targeting {
-        val target: WorkablePlanet
+        val target: WorkablePlanet?
         val requiredArmy: Int
         var sentFleet: ArrayList<FleetOrder>
         var sentFleetNumber: Int
@@ -57,14 +57,18 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
 
     inner class InerTarget : Targeting {
 
-        override val target: WorkablePlanet = findTarget()!! // todo
+        override val target: WorkablePlanet? = findTarget() // todo
         override val requiredArmy: Int
             get() {
                 var extraCare = 0
-                if (target.colony.owner != WorkablePlanet.Guilde_du_Commerce) {
-                    extraCare = 5 + target.colony.gr!! * 2
+                if(target != null) {
+                    if (target.colony.owner != WorkablePlanet.Guilde_du_Commerce) {
+                        extraCare = 5 + target.colony.gr!! * 2
+                    }
+                    return extraCare + target.empireFleetIncoming + (target.enemyCivilainNearby - target.rebelCivilianNearby).toInt() - target.rebelionFleetIncoming - sentFleetNumber
+                } else {
+                    return 0
                 }
-                return extraCare + target.empireFleetIncoming + (target.enemyCivilainNearby - target.rebelCivilianNearby).toInt() - target.rebelionFleetIncoming - sentFleetNumber
             }
         override var sentFleet = ArrayList<FleetOrder>();
         override var sentFleetNumber: Int = 0
@@ -85,23 +89,25 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
         }
 
         override fun mobilise() {
-            println("on innerTarget: " + target.colony.id)
-            var mobiliseOverpopulation = false
-            for (inspectedPlanet in overPopulatedPlanetList) {
-                if (requiredArmy < 0)
-                    return
+            if(target != null) {
+                println("on innerTarget: " + target.colony.id)
+                var mobiliseOverpopulation = false
+                for (inspectedPlanet in overPopulatedPlanetList) {
+                    if (requiredArmy < 0)
+                        return
 
-                sentFleetNumber = inspectedPlanet.pourFrodon(target.colony.id, requiredArmy)
-                mobiliseOverpopulation = true;
+                    sentFleetNumber = inspectedPlanet.pourFrodon(target.colony.id, requiredArmy)
+                    mobiliseOverpopulation = true;
+                }
+                val it = sortRebelPlanets.iterator()
+                while (requiredArmy > 0 && it.hasNext()) {
+                    sentFleetNumber += it.next().pourFrodon(target.colony.id, requiredArmy)
+                }
+                if (requiredArmy > 0 && !mobiliseOverpopulation) {
+                    itsATrap();
+                }
+                returnJSON.fleets.addAll(sentFleet)
             }
-            val it = sortRebelPlanets.iterator()
-            while (requiredArmy > 0 && it.hasNext()) {
-                sentFleetNumber += it.next().pourFrodon(target.colony.id, requiredArmy)
-            }
-            if (requiredArmy > 0 && !mobiliseOverpopulation) {
-                itsATrap();
-            }
-            returnJSON.fleets.addAll(sentFleet)
         }
     }
 
@@ -125,8 +131,8 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
             val cellTargets = TreeMap<Double, WorkablePlanet>()
             AIList.forEach { inspectAI ->
                 if (inspectAI.inerTarget != null) {
-                    val potentialtarget = inspectAI.inerTarget!!.target
-                    val key = (potentialtarget.interest - Math.hypot(localCluster.center.x - potentialtarget.colony.x, localCluster.center.y - potentialtarget.colony.y) / 40) * -1
+                    val potentialtarget = inspectAI!!.inerTarget!!.target
+                    val key = (potentialtarget!!.interest - Math.hypot(localCluster.center.x - potentialtarget.colony.x, localCluster.center.y - potentialtarget.colony.y) / 40) * -1
                     cellTargets.put(key, potentialtarget)
                 }
             }
