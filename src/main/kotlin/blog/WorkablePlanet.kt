@@ -96,7 +96,7 @@ class PlanetRebel(colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet
         get() = colony.units!! > maxPop
     val minPop: Int
         get() {
-            val temp = Integer.min(maxPop, /*enemyCivilainNearby.toInt()*/ +empireFleetIncoming - rebelionFleetIncoming - alreadySentFleet + 1)
+            val temp = Integer.min(maxPop, /*enemyCivilainNearby.toInt()*/ + max(empireFleetIncoming - rebelionFleetIncoming, 0) + alreadySentFleet + 1)
             return Integer.max(temp, 1)
         }
     var alreadySentFleet:Int = 0
