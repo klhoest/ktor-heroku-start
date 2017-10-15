@@ -105,7 +105,7 @@ class PlanetRebel(colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet
         return (rebelionFleetIncoming - empireFleetIncoming + colony.units!!) > 0
     }
 
-    fun pourFrodon(targetId: Int, requiredFleet: Int): Int {
+    fun pourFrodon(targetId: Int, requiredFleet: Int, aiFleetOrders: ArrayList<FleetOrder>): Int {
         if(targetId == this.colony.id) {
             println("warnin: planet${targetId} tried to attack itself")
             return 0
@@ -121,7 +121,7 @@ class PlanetRebel(colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet
         }
         System.out.println("pourFrodon. send " + (sendableUnits) + "/" + this.colony.units + " from " + this.colony.id + " remains " + (requiredFleet - sendableUnits / 4))
         alreadySentFleet += sentFleet
-        returnJSON.fleets.add(FleetOrder(sentFleet, source = colony.id, target = targetId))
+        aiFleetOrders.add(FleetOrder(sentFleet, source = colony.id, target = targetId))
         return sentFleet
     }
 }

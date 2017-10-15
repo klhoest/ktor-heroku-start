@@ -46,12 +46,12 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
     interface Targeting {
         val target: WorkablePlanet?
         val requiredArmy: Int
-        var sentFleet: ArrayList<FleetOrder>
+        var AIFleetOrders: ArrayList<FleetOrder>
         var sentFleetNumber: Int
         fun findTarget(): WorkablePlanet?
         fun mobilise()
         fun itsATrap() {
-            sentFleet.clear()
+            AIFleetOrders.clear()
         }
     }
 
@@ -70,9 +70,9 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
                     return 0
                 }
             }
-        override var sentFleet = ArrayList<FleetOrder>();
+        override var AIFleetOrders = ArrayList<FleetOrder>();
         override var sentFleetNumber: Int = 0
-            get() = sentFleet.sumBy { inpectFleet -> inpectFleet.units }
+            get() = AIFleetOrders.sumBy { inpectFleet -> inpectFleet.units }
 
         override fun findTarget(): WorkablePlanet? {
             var inspectPlanet: WorkablePlanet
@@ -96,17 +96,17 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
                     if (requiredArmy < 0)
                         return
 
-                    sentFleetNumber = inspectedPlanet.pourFrodon(target.colony.id, requiredArmy)
+                    sentFleetNumber = inspectedPlanet.pourFrodon(target.colony.id, requiredArmy, AIFleetOrders)
                     mobiliseOverpopulation = true;
                 }
                 val it = sortRebelPlanets.iterator()
                 while (requiredArmy > 0 && it.hasNext()) {
-                    sentFleetNumber += it.next().pourFrodon(target.colony.id, requiredArmy)
+                    sentFleetNumber += it.next().pourFrodon(target.colony.id, requiredArmy, AIFleetOrders)
                 }
                 if (requiredArmy > 0 && !mobiliseOverpopulation) {
                     itsATrap();
                 }
-                returnJSON.fleets.addAll(sentFleet)
+                returnJSON.fleets.addAll(AIFleetOrders)
             }
         }
     }
@@ -125,9 +125,9 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
                     return 0
                 }
             }
-        override var sentFleet = ArrayList<FleetOrder>();
+        override var AIFleetOrders = ArrayList<FleetOrder>();
         override var sentFleetNumber: Int = 0
-            get() = sentFleet.sumBy { inpectFleet -> inpectFleet.units }
+            get() = AIFleetOrders.sumBy { inpectFleet -> inpectFleet.units }
 
         var distance:Double =99999.0
             get() {
@@ -164,17 +164,17 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
                 for (inspectedPlanet in overPopulatedPlanetList) {
                     if (requiredArmy < 0)
                         return
-                    sentFleetNumber = inspectedPlanet.pourFrodon(target.colony.id, requiredArmy)
+                    sentFleetNumber = inspectedPlanet.pourFrodon(target.colony.id, requiredArmy, AIFleetOrders)
                     mobiliseOverpopulation = true;
                 }
                 val it = sortRebelPlanets.iterator()
                 while (requiredArmy > 0 && it.hasNext()) {
-                    sentFleetNumber += it.next().pourFrodon(target.colony.id, requiredArmy)
+                    sentFleetNumber += it.next().pourFrodon(target.colony.id, requiredArmy, AIFleetOrders)
                 }
                 if (requiredArmy > 0 && !mobiliseOverpopulation) {
                     itsATrap();
                 }
-                returnJSON.fleets.addAll(sentFleet)
+                returnJSON.fleets.addAll(AIFleetOrders)
             }
         }
     }
