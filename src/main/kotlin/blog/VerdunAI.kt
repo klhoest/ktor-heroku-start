@@ -120,7 +120,7 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
                     if (target.colony.owner != WorkablePlanet.Guilde_du_Commerce) {
                         extraCare = 30 + target.colony.gr!! * 3
                     }
-                    return extraCare + target.empireFleetIncoming + (target.enemyCivilainNearby - target.rebelCivilianNearby).toInt() - target.rebelionFleetIncoming - sentFleetNumber
+                    return extraCare + target.empireFleetIncoming + (target.enemyCivilainNearby - target.rebelCivilianNearby).toInt() - target.rebelionFleetIncoming - sentFleetNumber + (distance/70).toInt()
                 } else {
                     return 0
                 }
