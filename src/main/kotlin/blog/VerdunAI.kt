@@ -103,7 +103,7 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
                 while (requiredArmy > 0 && it.hasNext()) {
                     sentFleetNumber += it.next().pourFrodon(target.colony.id, requiredArmy, AIFleetOrders)
                 }
-                if (requiredArmy > 0 && !mobiliseOverpopulation) {
+                if (requiredArmy > 15 && !mobiliseOverpopulation) {
                     itsATrap();
                 }
                 returnJSON.fleets.addAll(AIFleetOrders)
@@ -174,7 +174,7 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
                 if (requiredArmy > 0 && !mobiliseOverpopulation) {
                     itsATrap();
                 }
-                returnJSON.fleets.addAll(AIFleetOrders)
+                    returnJSON.fleets.addAll(AIFleetOrders)
             }
         }
     }

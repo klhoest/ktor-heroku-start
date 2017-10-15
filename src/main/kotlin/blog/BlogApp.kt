@@ -105,7 +105,7 @@ class Galaxy(inputPojo: Pojo) {
         val wSolarSystem: List<WorkablePlanet?> = solarSystemPojo.map { inspectPlanet ->
             planetFactory(inspectPlanet)
         }
-        val clusters = wSolarSystem.filterNotNull().multiKMeansCluster(k = 4,
+        val clusters = wSolarSystem.filterNotNull().multiKMeansCluster(k = 5,
                 maxIterations = 1000,
                 trialCount = 50,
                 xSelector = { it.colony.x },
