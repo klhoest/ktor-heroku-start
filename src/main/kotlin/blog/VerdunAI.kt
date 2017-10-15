@@ -57,7 +57,7 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
 
     inner class InerTarget : Targeting {
 
-        override val target: WorkablePlanet? = findTarget() // todo
+        override val target: WorkablePlanet? = findTarget()
         override val requiredArmy: Int
             get() {
                 var extraCare = 0
@@ -112,20 +112,32 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
     }
 
     inner class OuterTarget() : Targeting {
-        override val target: WorkablePlanet = findTarget()!! // todo
+        override val target: WorkablePlanet? = findTarget()
         override val requiredArmy: Int
             get() {
                 var extraCare = 0
-                if (target.colony.owner != WorkablePlanet.Guilde_du_Commerce) {
-                    extraCare = 30 + target.colony.gr!! * 3
+                if(target!= null) {
+                    if (target.colony.owner != WorkablePlanet.Guilde_du_Commerce) {
+                        extraCare = 30 + target.colony.gr!! * 3
+                    }
+                    return extraCare + target.empireFleetIncoming + (target.enemyCivilainNearby - target.rebelCivilianNearby).toInt() - target.rebelionFleetIncoming - sentFleetNumber
+                } else {
+                    return 0
                 }
-                return extraCare + target.empireFleetIncoming + (target.enemyCivilainNearby - target.rebelCivilianNearby).toInt() - target.rebelionFleetIncoming - sentFleetNumber
             }
         override var sentFleet = ArrayList<FleetOrder>();
         override var sentFleetNumber: Int = 0
             get() = sentFleet.sumBy { inpectFleet -> inpectFleet.units }
 
-        val distance = Math.hypot(localCluster.center.x - target.colony.x, localCluster.center.y - target.colony.y)
+        var distance:Double =99999.0
+            get() {
+                if(target!= null) {
+                    return Math.hypot(localCluster.center.x - target.colony.x, localCluster.center.y - target.colony.y)
+                }
+                else {
+                    return 99999.0
+                }
+            }
 
         override fun findTarget(): WorkablePlanet? {
             val cellTargets = TreeMap<Double, WorkablePlanet>()
@@ -146,22 +158,24 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
         }
 
         override fun mobilise() {
-            println("on outerTarget: " + target.colony.id)
-            var mobiliseOverpopulation = false
-            for (inspectedPlanet in overPopulatedPlanetList) {
-                if (requiredArmy < 0)
-                    return
-                sentFleetNumber = inspectedPlanet.pourFrodon(target.colony.id, requiredArmy)
-                mobiliseOverpopulation = true;
+            if(target!= null) {
+                println("on outerTarget: " + target.colony.id)
+                var mobiliseOverpopulation = false
+                for (inspectedPlanet in overPopulatedPlanetList) {
+                    if (requiredArmy < 0)
+                        return
+                    sentFleetNumber = inspectedPlanet.pourFrodon(target.colony.id, requiredArmy)
+                    mobiliseOverpopulation = true;
+                }
+                val it = sortRebelPlanets.iterator()
+                while (requiredArmy > 0 && it.hasNext()) {
+                    sentFleetNumber += it.next().pourFrodon(target.colony.id, requiredArmy)
+                }
+                if (requiredArmy > 0 && !mobiliseOverpopulation) {
+                    itsATrap();
+                }
+                returnJSON.fleets.addAll(sentFleet)
             }
-            val it = sortRebelPlanets.iterator()
-            while (requiredArmy > 0 && it.hasNext()) {
-                sentFleetNumber += it.next().pourFrodon(target.colony.id, requiredArmy)
-            }
-            if (requiredArmy > 0 && !mobiliseOverpopulation) {
-                itsATrap();
-            }
-            returnJSON.fleets.addAll(sentFleet)
         }
     }
 }
