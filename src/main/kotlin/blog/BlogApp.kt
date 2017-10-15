@@ -61,11 +61,16 @@ fun Application.module() {
                     AIList.add(VerdunAI(cluster, AIList));
                 }
 
+                AIList.forEach { AI ->
+                    AI.constructTargeting()
+                }
+
                 AIList.forEachIndexed { index, verdunAI ->
                     println("CENTROID: $index")
                     try {
                         verdunAI.print()
-                        verdunAI.mobilise()
+                        verdunAI.inerTarget?.mobilise()
+                        verdunAI.outerTarget?.mobilise()
                     } catch (e:NullPointerException) {
                         System.out.println("no target found" + e.message)
                     }
@@ -108,7 +113,7 @@ class Galaxy(inputPojo: Pojo) {
         val wSolarSystem: List<WorkablePlanet?> = solarSystemPojo.map { inspectPlanet ->
             planetFactory(inspectPlanet)
         }
-        val clusters = wSolarSystem.filterNotNull().multiKMeansCluster(k = 2,
+        val clusters = wSolarSystem.filterNotNull().multiKMeansCluster(k = 4,
                 maxIterations = 1000,
                 trialCount = 50,
                 xSelector = { it.colony.x },

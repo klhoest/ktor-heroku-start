@@ -2,11 +2,12 @@ package blog
 
 import org.nield.kotlinstatistics.Centroid
 import java.util.*
+import kotlin.collections.ArrayList
 
 class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<VerdunAI>) {
 
     var solarSystemCell = localCluster.points.sortedDescending()
-    var orderRebelPlanets = solarSystemCell.filterIsInstance<PlanetRebel>()
+    var sortRebelPlanets = solarSystemCell.filterIsInstance<PlanetRebel>()
     var rebelInside: Int = 0
         get() {
             var result = 0
@@ -17,23 +18,20 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
             }
             return result
         }
-    val innerTarget: WorkablePlanet = findInnerTarget()!! // todo
-    val requiredArmy: Int
-        get() {
-            var extraCare = 0
-            if (innerTarget.colony.owner != WorkablePlanet.Guilde_du_Commerce) {
-                extraCare = 5 + innerTarget.colony.gr!!*2
-            }
-            return extraCare + innerTarget.empireFleetIncoming + (innerTarget.enemyCivilainNearby - innerTarget.rebelCivilianNearby).toInt() - innerTarget.rebelionFleetIncoming - sentFleet
-        }
-    var sentFleet = 0
     val overPopulatedPlanetList: ArrayList<PlanetRebel>
         get() {
             val result = ArrayList<PlanetRebel>()
-            orderRebelPlanets
+            sortRebelPlanets
                     .filterTo(result) { it.isOverpopulated }
             return result
         }
+    var inerTarget: InerTarget? = null;
+    var outerTarget: OuterTarget? = null;
+
+    fun constructTargeting() {
+        inerTarget = InerTarget()
+        outerTarget = OuterTarget();
+    }
 
     fun print() {
         solarSystemCell.forEach {
@@ -45,49 +43,118 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
         }
     }
 
-    fun findInnerTarget(): WorkablePlanet? {
-        var inspectPlanet: WorkablePlanet
-        val it = solarSystemCell.iterator()
-        while (it.hasNext()) {
-            inspectPlanet = it.next()
-            if (!inspectPlanet.safe) {
-                System.out.println("innerTarget : " + inspectPlanet.colony.id + " , interest = " + inspectPlanet.interest)
-                return inspectPlanet
+    interface Targeting {
+        val target: WorkablePlanet
+        val requiredArmy: Int
+        var sentFleet: ArrayList<FleetOrder>
+        var sentFleetNumber: Int
+        fun findTarget(): WorkablePlanet?
+        fun mobilise()
+        fun itsATrap() {
+            sentFleet.clear()
+        }
+    }
+
+    inner class InerTarget() : Targeting {
+
+        override val target: WorkablePlanet = findTarget()!! // todo
+        override val requiredArmy: Int
+            get() {
+                var extraCare = 0
+                if (target.colony.owner != WorkablePlanet.Guilde_du_Commerce) {
+                    extraCare = 5 + target.colony.gr!! * 2
+                }
+                return extraCare + target.empireFleetIncoming + (target.enemyCivilainNearby - target.rebelCivilianNearby).toInt() - target.rebelionFleetIncoming - sentFleetNumber
+            }
+        override var sentFleet = ArrayList<FleetOrder>();
+        override var sentFleetNumber: Int = 0
+            get() = sentFleet.sumBy { inpectFleet -> inpectFleet.units }
+
+        override fun findTarget(): WorkablePlanet? {
+            var inspectPlanet: WorkablePlanet
+            val it = solarSystemCell.iterator()
+            while (it.hasNext()) {
+                inspectPlanet = it.next()
+                if (!inspectPlanet.safe) {
+                    System.out.println("innerTarget : " + inspectPlanet.colony.id + " , interest = " + inspectPlanet.interest)
+                    return inspectPlanet
+                }
+            }
+            System.out.println("no innerTarget found. skip this turn");
+            return null
+        }
+
+        override fun mobilise() {
+            println("on innerTarget: " + target.colony.id)
+            var mobiliseOverpopulation = false
+            for (inspectedPlanet in overPopulatedPlanetList) {
+                if (requiredArmy < 0)
+                    return
+
+                sentFleetNumber = inspectedPlanet.pourFrodon(target.colony.id, requiredArmy)
+                mobiliseOverpopulation = true;
+            }
+            val it = sortRebelPlanets.iterator()
+            while (requiredArmy > 0 && it.hasNext()) {
+                sentFleetNumber += it.next().pourFrodon(target.colony.id, requiredArmy)
+            }
+            if (requiredArmy > 0 && !mobiliseOverpopulation) {
+                itsATrap();
+            }
+            returnJSON.fleets.addAll(sentFleet)
+        }
+    }
+
+    inner class OuterTarget() : Targeting {
+        override val target: WorkablePlanet = findTarget()!! // todo
+        override val requiredArmy: Int
+            get() {
+                var extraCare = 0
+                if (target.colony.owner != WorkablePlanet.Guilde_du_Commerce) {
+                    extraCare = 30 + target.colony.gr!! * 3
+                }
+                return extraCare + target.empireFleetIncoming + (target.enemyCivilainNearby - target.rebelCivilianNearby).toInt() - target.rebelionFleetIncoming - sentFleetNumber
+            }
+        override var sentFleet = ArrayList<FleetOrder>();
+        override var sentFleetNumber: Int = 0
+            get() = sentFleet.sumBy { inpectFleet -> inpectFleet.units }
+
+        val distance = Math.hypot(localCluster.center.x - target.colony.x, localCluster.center.y - target.colony.y)
+
+        override fun findTarget(): WorkablePlanet? {
+            val cellTargets = TreeMap<Double, WorkablePlanet>()
+            AIList.forEach { inspectAI ->
+                if (inspectAI.inerTarget != null) {
+                    val potentialtarget = inspectAI.inerTarget!!.target
+                    val key = (potentialtarget.interest - Math.hypot(localCluster.center.x - potentialtarget.colony.x, localCluster.center.y - potentialtarget.colony.y) / 40) * -1
+                    cellTargets.put(key, potentialtarget)
+                }
+            }
+            if (cellTargets.isEmpty()) {
+                System.out.println("no outerTarget found. skip this turn");
+                return null
+            } else {
+                return cellTargets.firstEntry().value
             }
         }
-        System.out.println("no innerTarget found. skip this turn");
-        return null
-    }
 
-    fun findOutterTarget(): WorkablePlanet {
-        var cellTargets = TreeMap<Double, WorkablePlanet>()
-        AIList.forEach { inspectAI ->
-            val target = inspectAI.innerTarget
-            val key = (target.interest - Math.hypot(localCluster.center.x - target.colony.x, localCluster.center.y - target.colony.y)/40)*-1
-            cellTargets.put(key, target)
-        }
-        val it = cellTargets.iterator()
-        return cellTargets.firstEntry().value
-    }
-
-    fun itsATrap() {
-        returnJSON.fleets.clear()
-    }
-
-    fun mobilise() {
-        var mobiliseOverpopulation = false
-        for (inspectedPlanet in overPopulatedPlanetList) {
-            if (requiredArmy < 0)
-                return
-            sentFleet = inspectedPlanet.pourFrodon(innerTarget.colony.id, requiredArmy)
-            mobiliseOverpopulation = true;
-        }
-        val it = orderRebelPlanets.iterator()
-        while (requiredArmy > 0 && it.hasNext()) {
-            sentFleet += it.next().pourFrodon(innerTarget.colony.id, requiredArmy)
-        }
-        if(requiredArmy>0 && !mobiliseOverpopulation) {
-            itsATrap();
+        override fun mobilise() {
+            println("on outerTarget: " + target.colony.id)
+            var mobiliseOverpopulation = false
+            for (inspectedPlanet in overPopulatedPlanetList) {
+                if (requiredArmy < 0)
+                    return
+                sentFleetNumber = inspectedPlanet.pourFrodon(target.colony.id, requiredArmy)
+                mobiliseOverpopulation = true;
+            }
+            val it = sortRebelPlanets.iterator()
+            while (requiredArmy > 0 && it.hasNext()) {
+                sentFleetNumber += it.next().pourFrodon(target.colony.id, requiredArmy)
+            }
+            if (requiredArmy > 0 && !mobiliseOverpopulation) {
+                itsATrap();
+            }
+            returnJSON.fleets.addAll(sentFleet)
         }
     }
 }
