@@ -130,9 +130,10 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
         override fun findTarget(): WorkablePlanet? {
             val cellTargets = TreeMap<Double, WorkablePlanet>()
             AIList.forEach { inspectAI ->
-                if (inspectAI.inerTarget != null) {
-                    val potentialtarget = inspectAI!!.inerTarget!!.target
-                    val key = (potentialtarget!!.interest - Math.hypot(localCluster.center.x - potentialtarget.colony.x, localCluster.center.y - potentialtarget.colony.y) / 40) * -1
+                val targetCopy = inspectAI.inerTarget; //could not smart cast otherwise
+                if (targetCopy != null && targetCopy.target!= null) {
+                    val potentialtarget = targetCopy.target
+                    val key = (potentialtarget.interest - Math.hypot(localCluster.center.x - potentialtarget.colony.x, localCluster.center.y - potentialtarget.colony.y) / 40) * -1
                     cellTargets.put(key, potentialtarget)
                 }
             }

@@ -39,8 +39,8 @@ fun Application.module() {
             val inputBody: String = call.request.receiveContent().readText()
             var inputPojo: Pojo? = null
             try {
-                System.out.println("received json :");
-                System.out.println(inputBody)
+                System.out.println("______________received request________________");
+                //System.out.println(inputBody)
                 inputPojo = generatePojo(inputBody)
             } catch (e: Exception) {
                 call.respond(returnJSON)

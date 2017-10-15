@@ -105,6 +105,10 @@ class PlanetRebel(colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet
     }
 
     fun pourFrodon(targetId: Int, requiredFleet: Int): Int {
+        if(targetId == this.colony.id) {
+            println("warnin: planet${targetId} tried to attack itself")
+            return 0
+        }
         var sentFleet = min(sendableUnits / 4, requiredFleet)
         if (sentFleet < 3) {
             if (sendableUnits < 3) {
