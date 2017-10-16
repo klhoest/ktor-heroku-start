@@ -85,6 +85,10 @@ open class WorkablePlanet(val colony: Planet, laRebelion: List<Planet>, lEmpire:
     }
 }
 
+interface AItoPlanet {
+    fun getRebelInCluster(): Int
+}
+
 class PlanetRebel(colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet>, rebelionFleet: List<Fleet>, empireFleet: List<Fleet>)
     : WorkablePlanet(colony, laRebelion, lEmpire, rebelionFleet, empireFleet) {
     //var inpect: Planet;
@@ -94,12 +98,17 @@ class PlanetRebel(colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet
         get() = colony.mu!!-(colony.gr!!*2) - alreadySentFleet
     val isOverpopulated: Boolean
         get() = colony.units!! > maxPop
+    var rebelInside = 0
+        get() {
+            return aIToPlanet?.getRebelInCluster() ?: 0
+        }
     val minPop: Int
         get() {
-            val temp = Integer.min(maxPop, /*enemyCivilainNearby.toInt()*/ + max(empireFleetIncoming - rebelionFleetIncoming, 0) + alreadySentFleet + 1)
+            val temp = Integer.min(maxPop, /*enemyCivilainNearby.toInt()*/ max(empireFleetIncoming - rebelionFleetIncoming, 0) + alreadySentFleet + 1 - (aIToPlanet?.getRebelInCluster() ?: 0) )
             return Integer.max(temp, 1)
         }
     var alreadySentFleet:Int = 0
+    var aIToPlanet: AItoPlanet? = null
 
     override fun isSafe(): Boolean {
         return (rebelionFleetIncoming - empireFleetIncoming + colony.units!!) > 0

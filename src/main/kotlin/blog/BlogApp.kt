@@ -56,6 +56,9 @@ fun Application.module() {
 
                 AIList.forEach { AI ->
                     AI.constructTargeting()
+                    AI.sortRebelPlanets.forEach { inpectPlanet ->
+                        inpectPlanet.aIToPlanet = AI
+                    }
                 }
 
                 AIList.forEachIndexed { index, verdunAI ->

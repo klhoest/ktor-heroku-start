@@ -4,7 +4,7 @@ import org.nield.kotlinstatistics.Centroid
 import java.util.*
 import kotlin.collections.ArrayList
 
-class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<VerdunAI>) {
+class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<VerdunAI>): AItoPlanet {
 
     var solarSystemCell = localCluster.points.sortedDescending()
     var sortRebelPlanets = solarSystemCell.filterIsInstance<PlanetRebel>()
@@ -27,6 +27,10 @@ class VerdunAI(val localCluster: Centroid<WorkablePlanet>,val AIList: List<Verdu
         }
     var inerTarget: InerTarget? = null;
     var outerTarget: OuterTarget? = null;
+
+    override fun getRebelInCluster(): Int {
+        return rebelInside
+    }
 
     fun constructTargeting() {
         inerTarget = InerTarget()
