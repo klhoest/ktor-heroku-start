@@ -98,13 +98,13 @@ class PlanetRebel(colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet
         get() = colony.mu!!-(colony.gr!!*2) - alreadySentFleet
     val isOverpopulated: Boolean
         get() = colony.units!! > maxPop
-    var rebelInside = 0
+    var rebelInside: Int? = null
         get() {
-            return aIToPlanet?.getRebelInCluster() ?: 0
+            return aIToPlanet?.getRebelInCluster()
         }
     val minPop: Int
         get() {
-            val temp = Integer.min(maxPop, /*enemyCivilainNearby.toInt()*/ max(empireFleetIncoming - rebelionFleetIncoming, 0) + alreadySentFleet + 1 - (aIToPlanet?.getRebelInCluster() ?: 0) )
+            val temp = Integer.min(maxPop, /*enemyCivilainNearby.toInt()*/ max(empireFleetIncoming - rebelionFleetIncoming, 0) + alreadySentFleet + 1 - (aIToPlanet?.getRebelInCluster() ?: 0)/7 )
             return Integer.max(temp, 1)
         }
     var alreadySentFleet:Int = 0
