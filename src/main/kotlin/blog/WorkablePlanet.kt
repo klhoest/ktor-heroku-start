@@ -5,7 +5,7 @@ import java.lang.Integer.min
 
 open class WorkablePlanet(val colony: Planet, laRebelion: List<Planet>, lEmpire: List<Planet>, val rebelionFleet: List<Fleet>, val empireFleet: List<Fleet>) : Comparable<WorkablePlanet> {
 
-    val interest: Int = colony.gr!! - empireFleetIncoming / 10 - enemyPop / 20;
+    val interest: Int = colony.gr!! + rebelionFleetIncoming/4 - empireFleetIncoming / 10 - enemyPop / 20;
     val enemyPop: Int
         get() {
             if (colony.owner == ME) {
